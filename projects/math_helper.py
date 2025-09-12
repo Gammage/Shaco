@@ -1,40 +1,29 @@
-# Define functions for each operation
+
+# Define the operations
 def add(a, b):
-    return a + b # fill in: return the sum
+    return a + b
 
 def subtract(a, b):
-    return a - b  # fill in: return the difference
-
+    return a - b
 
 def multiply(a, b):
-    return a * b  # fill in: return the product
-
+    return a * b
 
 def divide(a, b):
     if b == 0:
-        return "cannot divide by zero"
-    return a / b  # fill in: return the division
+        return "Cannot divide by zero"
+    return a / b
 
-
-# Main program
-if __name__ == '__main__':
-    print("Welcome to Math Helper Bot!")
-
-    # Ask user for two numbers
-    num1 = float(input("Enter the first number: "))
-    num2 = float(input("Enter the second number: "))
-
-    # Ask user for operation
-    operation = input("Choose operation (add/subtract/multiply/divide): ").lower()
-
-    # Decide which function to call
+# Define functions for each operation
+def calculate(operation, a, b):
     if operation == "add":
-        print(add(num1, num2)) # call add(num1, num2) and print result
+        return add(a, b)
     elif operation == "subtract":
-        print(subtract(num1, num2)) # call subtract(num1, num2) and print result
+        return subtract(a, b)
     elif operation == "multiply":
-        print(multiply(num1, num2))  # call multiply(num1, num2) and print result
+        return multiply(a, b)
     elif operation == "divide":
-        print(divide(num1, num2))  # call divide(num1, num2) and print result
+        return divide(a, b)
     else:
-        print("Invalid operation")
+        return "Invalid operation"
+
