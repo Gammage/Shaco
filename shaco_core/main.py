@@ -28,11 +28,25 @@ def handle_command(command):
         time_seconds = int(parts[-1])          # last word = seconds
         reminder_bot.add_reminder(reminder_text, time_seconds)
     
-    #call the job tracker    
     elif command.startswith("job"):
-    # Example: "job add" or "job list"
-        job_command = command[len("job "):]
-        job_tracker.interactive_mode(job_command)
+        # Remove the 'job ' prefix
+        job_command = command[len("job "):].strip()
+
+        # Quick-add format: job add "role" "company" [status]
+        if job_command.startswith("add "):
+            # Split by quotes
+            import re
+            match = re.match(r'add\s+"([^"]+)"\s+"([^"]+)"(?:\s+(\w+))?', job_command)
+            if match:
+                role, company, status = match.groups()
+                status = status or "todo"
+                job_tracker.add_job(role, company, status)
+                print(f'Added: {role} @ {company} (status={status})')
+            else:
+                print("Invalid quick-add format. Use: job add \"role\" \"company\" [status]")
+        else:
+            # Enter interactive mode for other commands
+            job_tracker.interactive_mode()
 
 
 
@@ -43,9 +57,12 @@ def handle_command(command):
 
 if __name__ == "__main__":
     print("Welcome to Shaco! Type 'exit' to quit.")
+    exit_commands = {"exit", "quit", "bye", "close", "goodbye"}
+
     while True:
-        user_input = input("> ")
-        if user_input.lower() == "exit":
+        user_input = input("> ").strip().lower()
+        if user_input in exit_commands:
+            print("Goodbye!")
             break
         handle_command(user_input)
 
