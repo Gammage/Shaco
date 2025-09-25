@@ -13,13 +13,13 @@ Features:
 
 from __future__ import annotations
 import json
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime, timezone
 from pathlib import Path
-import tempfile
 import os
 import uuid
 import difflib
+import re
 from typing import List, Optional, Dict, Union
 
 # ---------- Config ----------
@@ -38,6 +38,8 @@ EXIT_WORDS = {"exit", "quit", "q", "cancel", "never mind", "nah", "nope", "forge
 # Words that mean "leave this field blank or move on"
 SKIP_WORDS = {"skip", "pass", "s", "no", "n"}
 
+POSTCODE_RE = re.compile(r"\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b", re.I)
+
 DATA_FILE = Path(__file__).parent.parent / "data" / "job_data.json"
 
 
@@ -48,7 +50,10 @@ class Job:
     role: str
     company: str
     status: str = "applied"
+    location: str = ""      # NEW
+    job_type: str = ""                # full-time / part-time / contract etc.
     updated_at: str = ""
+    skills: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         if not self.id:
@@ -70,6 +75,7 @@ class Job:
             company=d.get("company", ""),
             status=d.get("status", "applied"),
             updated_at=d.get("updated_at", datetime.now(timezone.utc).isoformat()),
+            skills=d.get("skills", []),
         )
 
 
@@ -211,7 +217,6 @@ def _prompt_field(prompt_text: str, required: bool = False, default: Optional[st
             return default
         return raw
 
-
 def add_job_interactive(path: Path = DATA_FILE):
     """
     Interactive flow for adding a job.
@@ -229,6 +234,102 @@ def add_job_interactive(path: Path = DATA_FILE):
     job = add_job(role=role, company=company, status=status or "applied", path=path)
     print(f"Added: {job.role} @ {job.company} (id={job.id})")
     return job
+
+# ---------- Predefined skills ----------
+COMMON_SKILLS = [
+    "Python", "Java", "C++", "SQL", "Excel", "Leadership", "Communication",
+    "Project Management", "AWS", "Docker", "Kubernetes", "Git", "Linux",
+    "Machine Learning", "Data Analysis", "Testing", "Automation", "JavaScript"
+]
+
+# ---------- Paste / free-text helper ----------
+def extract_skills_from_text(lines: List[str]) -> List[str]:
+    """
+    Scans the pasted job description for known skills.
+    Returns a list of matched skills.
+    """
+    text = " ".join(lines).lower()
+    found_skills = [skill for skill in COMMON_SKILLS if skill.lower() in text]
+    return found_skills
+
+def add_from_text():
+    """
+    Interactive paste: user pastes job description, 
+    function guesses role, company, location, job type, and skills.
+    """
+    print("Paste the job description (end with a blank line):")
+    lines = []
+    while True:
+        line = input()
+        if not line.strip():  # blank line = stop
+            break
+        lines.append(line.strip())
+
+    if not lines:
+        print("No text entered.")
+        return
+
+    # --- Guess role ---
+    role = lines[0].split("-")[0].strip().title()
+
+    # --- Guess company ---
+    company = ""
+    for line in lines[1:5]:
+        m = re.search(r"at\s+([A-Za-z &]+)", line, re.I)
+        if m:
+            company = m.group(1).title()
+            break
+    if not company:
+        for line in lines[1:5]:
+            if not any(k in line.lower() for k in ["full-time", "part-time", "contract", "salary", "location", "job", "profile", "skills"]):
+                company = line.title()
+                break
+
+    # --- Guess location using regex for postcodes ---
+    location = ""
+    POSTCODE_RE = re.compile(r"\b[A-Z]{1,2}\d{1,2}[A-Z]?\s*\d[A-Z]{2}\b", re.I)
+    for line in lines:
+        m = POSTCODE_RE.search(line)
+        if m:
+            location = m.group(0)
+            break
+
+    # --- Guess job type (Full-time, Part-time, Contract) ---
+    job_type = "Full-time"
+    for t in ["full-time", "part-time", "contract", "temporary", "internship", "permanent"]:
+        if any(t in line.lower() for line in lines):
+            job_type = t.title()
+            break
+
+    # --- Extract skills ---
+    skills = extract_skills_from_text(lines)
+
+    # --- Prompt user to confirm or edit ---
+    role = input(f"Role [{role}]: ") or role
+    company = input(f"Company [{company}]: ") or company
+    location = input(f"Location [{location}]: ") or location
+    job_type = input(f"Job Type [{job_type}]: ") or job_type
+    status = input("Status (applied/interviewing/offer/etc) [applied]: ") or "applied"
+
+    # --- Save job ---
+    job = Job(
+        id="",
+        role=role,
+        company=company,
+        status=status,
+        location=location,
+        job_type=job_type,
+        skills=skills
+    )
+
+    jobs = load_jobs()
+    jobs.append(job)
+    save_jobs(jobs)
+
+    # --- Notification ---
+    print(f"✅ Job added: {job.role} @ {job.company} ({job.job_type}) [{job.status}]")
+    if job.skills:
+        print(f"🛠 Skills detected: {', '.join(job.skills)}")
 
 
 def _print_jobs(jobs: List[Job]):
@@ -276,32 +377,50 @@ def translate_free_text_to_cmd(text: str) -> Optional[Dict]:
 # ---------- High-level CLI / command dispatcher ----------
 def handle_command(argv: List[str]):
     """
-    Programmatic entrypoint for main.py.
-    Examples:
-      handle_command(["add"]) -> interactive add
-      handle_command(["list"]) -> show list
-      handle_command(["remove", "<id-or-index>"])
-      handle_command([]) -> open interactive shell
+    Programmatic entrypoint for main.py / CLI.
+    
+    Commands supported:
+      job add [role company [status]]   -> add a job (interactive if no args)
+      job paste                         -> add a job by pasting multi-line description
+      job list [status]                  -> list jobs, optionally filtered by status
+      job remove <id|index>             -> remove a job
+      job update <id|index> [...]       -> update role, company, status
+      job help                          -> show help
+      (if no argv given, opens interactive shell)
     """
     if not argv:
         interactive_mode()
         return
 
     cmd = argv[0].lower()
+
+    # ---------- Add ----------
     if cmd in ("add", "a"):
         if len(argv) >= 3:
-            # non-interactive add: job add "role" "company" [status]
+            # Non-interactive add: job add "role" "company" [status]
             role = argv[1]
             company = argv[2]
             status = argv[3] if len(argv) > 3 else "applied"
             job = add_job(role, company, status)
             print(f"Added: {job.id}")
         else:
+            # Interactive add
             add_job_interactive()
+
+    # ---------- Paste ----------
+    elif cmd == "paste":
+        # Add a job by pasting multi-line job description
+        add_from_text()
+        return
+
+    # ---------- List ----------
     elif cmd in ("list", "ls"):
+        # List jobs, optionally filtered by status
         status = argv[1] if len(argv) > 1 else None
         jobs = list_jobs(status=status)
         _print_jobs(jobs)
+
+    # ---------- Remove ----------
     elif cmd in ("remove", "rm", "delete"):
         if len(argv) < 2:
             print("Usage: job remove <id|index>")
@@ -311,11 +430,12 @@ def handle_command(argv: List[str]):
             print(f"Removed {removed.id}")
         else:
             print("No job found with that id/index.")
+
+    # ---------- Update ----------
     elif cmd in ("update", "up"):
         if len(argv) < 2:
             print("Usage: job update <id|index> [--role newrole] [--company newcompany] [--status newstatus]")
             return
-        # naive parsing for brevity
         identifier = argv[1]
         kwargs = {}
         it = iter(argv[2:])
@@ -331,10 +451,13 @@ def handle_command(argv: List[str]):
             print(f"Updated {updated.id}")
         else:
             print("No job found to update.")
+
+    # ---------- Help ----------
     elif cmd in ("help", "-h", "--help"):
         print_help()
+
+    # ---------- Fallback: free-text translator ----------
     else:
-        # try free-text translator
         tl = translate_free_text_to_cmd(" ".join(argv))
         if tl:
             if tl["cmd"] == "add":
@@ -347,18 +470,37 @@ def handle_command(argv: List[str]):
             if tl["cmd"] == "list":
                 _print_jobs(list_jobs())
                 return
+
         print("Unknown command. Try 'job help'.")
 
-
 def print_help():
-    print("""job tracker commands:
+    """
+    Prints help text for the job tracker commands.
+    Shows both interactive and non-interactive usage.
+    """
+    print("""Shaco Core — Job tracker commands:
+
+Add a job:
   job add                -> interactive add
   job add "<role>" "<company>" [status]  -> quick add from main
+
+Paste a job description:
+  job paste              -> add a job by pasting multi-line description
+
+List jobs:
   job list [status]      -> list jobs (optionally filter by status)
+
+Remove a job:
   job remove <id|index>  -> remove a job
+
+Update a job:
   job update <id|index> [--role r] [--company c] [--status s] -> update
+
+Other:
+  job help               -> show this help
   (when interacting: type 'cancel' or 'exit' to abort an operation)
 """)
+
 
 
 def interactive_mode():
