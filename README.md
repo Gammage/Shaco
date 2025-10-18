@@ -1,73 +1,117 @@
-# Shaco - Personal AI Assistant
+🧠 Shaco – Personal AI Assistant
 
-Shaco is a modular AI assistant built in Python. It’s designed to help you manage small tasks, reminders, calculations, and more. The goal of this project is to **learn Python, AI concepts, and project integration** while building something functional over time.
+Shaco is a modular, privacy-first AI assistant built entirely in Python.
+It’s designed to help automate small tasks, manage reminders, generate reports, and eventually integrate local AI reasoning — all offline and under your control.
 
----
+This project is also a personal learning journey: a way to grow Python, automation, and AI integration skills by building something real over time.
 
-## **Project Structure**
-
+📁 Project Structure
 Shaco/
 │
 ├─ cheatsheet/
-│ └─ python_cheatsheet.pdf # Quick Python reference
+│   └─ python_cheatsheet.pdf        # Quick Python reference notes
 │
 ├─ projects/
-│ ├─ math_helper.py # Math helper module
-│ ├─ reminder_bot.py # Reminder bot module
-│ └─ ... # Additional small projects
+│   ├─ math_helper.py               # Math helper module
+│   ├─ reminder_bot.py              # Reminder bot module
+│   └─ ...                          # Additional mini projects
 │
 ├─ shaco_core/
-│ ├─ init.py
-│ ├─ main.py # Main entry point for Shaco
-│ ├─ command_parser.py # Handles user requests
-│ └─ utils.py # Helper functions
+│   ├─ __init__.py
+│   ├─ main.py                      # Main entry point for Shaco
+│   ├─ command_parser.py            # Handles user requests
+│   └─ utils.py                     # Shared helper functions
 │
 ├─ data/
-│ ├─ user_notes.json
-│ └─ logs/
+│   ├─ user_notes.json              # Example data store
+│   ├─ logs/                        # Log files
+│   └─ (future rag setup)           # Will handle retrieval-based memory
 │
 ├─ tests/
-│ └─ test_math_helper.py
+│   └─ test_math_helper.py
 │
 ├─ README.md
 └─ requirements.txt
 
+✨ Current Features
 
----
+🧮 Math Helper – Perform simple calculations directly from chat.
 
-## **Features**
+⏰ Reminder Bot – Set reminders and timed notifications.
 
-- **Math Helper**: Basic calculator functions for addition, subtraction, multiplication, and division.
-- **Reminder Bot**: Set reminders for tasks and notifications.
-- **Expandable Modules**: Add your own Python scripts as new functionality.
-- **Data Storage**: Store user notes and logs for Shaco’s reference.
+🧩 Expandable Modules – Drop in new Python scripts to extend functionality.
 
----
+🗂 Data Storage – Store user data and logs locally for future recall.
 
-## **Getting Started**
+📊 CSV → PDF Report Generator – (In development) Automatically turn data into professional reports.
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/shaco.git
-   cd shaco
+🧠 Local LLM Integration (Optional)
 
-2. Install dependencies (if any):
-   pip install -r requirements.txt
+Shaco is built to integrate seamlessly with a local language model backend for reasoning and conversation.
+This allows all AI interactions to run completely offline, keeping your data private and under your control.
 
-3. Run assistant:
-   python shaco_core/main.py
+🔧 How It Works
 
-🛠 Future Plans
+The /Llm folder (ignored in Git) contains your local model setup.
 
-Add AI-powered responses
+It connects to text-generation-webui
+, an open-source interface for running models like Mistral 7B or LLaMA locally.
 
-Integrate with local tools and APIs
+Shaco communicates with that backend through a simple local API (http://127.0.0.1:5000/api/v1/generate).
 
-Voice input and output
+⚠️ The /Llm directory and model files are not included in this repository due to size and licensing restrictions.
+If you’d like to run your own local model, see setup instructions in the text-generation-webui repository
+.
 
-Task automation
+🚀 Getting Started
+
+Clone this repository:
+
+git clone https://github.com/yourusername/shaco.git
+cd shaco
+
+
+Install dependencies:
+
+pip install -r requirements.txt
+
+
+Run Shaco:
+
+python shaco_core/main.py
+
+🧭 Roadmap
+
+🤖 Integrate AI-powered responses (local and optional)
+
+🧩 Build full RAG memory system (document and context recall)
+
+🔊 Add voice input/output
+
+⚙️ Expand automation capabilities
+
+🧠 Fine-tune a local LoRA model for personality & reasoning
 
 🤝 Contributing
 
-This is my personal project, but contributions and module ideas are welcome!
-Add new scripts in projects/ and integrate them in shaco_core/main.py.
+This is an open personal project, but contributions and ideas are welcome!
+You can:
+
+Add new modules under projects/
+
+Suggest improvements via issues or pull requests
+
+Help test new automation or RAG features
+
+📜 License
+
+MIT License — free to modify and use locally.
+
+💬 Contact
+
+Questions, collaboration ideas, or feedback?
+
+Open an issue on GitHub
+
+Or connect via LinkedIn
+ (add your link here)

@@ -49,12 +49,6 @@ def handle_command(command):
             job_tracker.interactive_mode()
 
 
-
-    #if nothing else
-    else:
-        print("Sorry, I don’t understand that command.")
-
-
 if __name__ == "__main__":
     print("Welcome to Shaco! Type 'exit' to quit.")
     exit_commands = {"exit", "quit", "bye", "close", "goodbye"}
