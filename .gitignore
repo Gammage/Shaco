@@ -1,0 +1,35 @@
+# ===== PYTHON / ENVIRONMENTS =====
+__pycache__/
+*.pyc
+venv/
+env/
+*.log
+
+# ===== SHACO PROJECT SPECIFIC =====
+# Ignore private or heavy data
+*.json
+logs/
+memory/
+users/
+characters/
+extensions/superboogav2/data/
+
+# Ignore saved models and checkpoints
+Llm/text-generation-webui/models/
+Llm/text-generation-webui/loras/
+*.gguf
+*.bin
+*.pt
+*.safetensors
+
+# ===== RAG / DATA =====
+rag/knowledge/*.txt
+rag/knowledge/*.csv
+rag/shaco_index.faiss
+rag/doc_paths.txt
+
+# ===== OS / EDITOR =====
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
