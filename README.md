@@ -5,30 +5,31 @@ It’s designed to help automate small tasks, manage reminders, generate reports
 
 This project is also a personal learning journey: a way to grow Python, automation, and AI integration skills by building something real over time.
 
-📁 Project Structure
+## 📁 Project Structure
+
 Shaco/
 │
 ├─ cheatsheet/
-│   └─ python_cheatsheet.pdf        # Quick Python reference notes
+│ └─ python_cheatsheet.pdf # Quick Python reference notes
 │
 ├─ projects/
-│   ├─ math_helper.py               # Math helper module
-│   ├─ reminder_bot.py              # Reminder bot module
-│   └─ ...                          # Additional mini projects
+│ ├─ math_helper.py # Math helper module
+│ ├─ reminder_bot.py # Reminder bot module
+│ └─ ... # Additional mini projects
 │
 ├─ shaco_core/
-│   ├─ __init__.py
-│   ├─ main.py                      # Main entry point for Shaco
-│   ├─ command_parser.py            # Handles user requests
-│   └─ utils.py                     # Shared helper functions
+│ ├─ init.py
+│ ├─ main.py # Main entry point for Shaco
+│ ├─ command_parser.py # Handles user requests
+│ └─ utils.py # Shared helper functions
 │
 ├─ data/
-│   ├─ user_notes.json              # Example data store
-│   ├─ logs/                        # Log files
-│   └─ (future rag setup)           # Will handle retrieval-based memory
+│ ├─ user_notes.json # Example data store
+│ ├─ logs/ # Log files
+│ └─ (future RAG setup) # Will handle retrieval-based memory
 │
 ├─ tests/
-│   └─ test_math_helper.py
+│ └─ test_math_helper.py
 │
 ├─ README.md
 └─ requirements.txt
