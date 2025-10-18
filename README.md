@@ -102,4 +102,5 @@ Questions, collaboration ideas, or feedback?
 Open an issue on GitHub
 
 Or connect via LinkedIn
- (add your link here)
+[LinkedIn](https://www.linkedin.com/in/benjamin-gammage-315299182/)
+
